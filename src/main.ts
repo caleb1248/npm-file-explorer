@@ -1,4 +1,4 @@
-import tarball from "./tarball.js";
+import {TarReader} from "./tarball";
 
 async function fetchLatest(name: string) {
   const { version } = await (
@@ -9,16 +9,16 @@ async function fetchLatest(name: string) {
 
 fetchLatest("esbuild-wasm");
 
-function fetchSampleBlob() {
-  fetch("https://registry.npmjs.org/esbuild/-/esbuild-0.19.5.tgz");
+async function fetchSampleBlob() {
+  await (await (fetch("https://registry.npmjs.org/esbuild/-/esbuild-0.19.5.tgz"))).blob();
 }
 fetch("https://registry.npmjs.org/esbuild/-/esbuild-0.19.5.tgz");
 
-const blobToDir = (blob: Blob) => new tarball.TarReader().readFile(blob);
+const blobToDir = (blob: Blob) => new TarReader().readFile(blob);
 
-fetchSampleBlob()
-  .then((e) => fetchStreamToDecompressionStream(e))
-  .then((e) => decompressionStreamToBlob(e))
+const blob = fetchSampleBlob()
+const stream = new DecompressionStream("gzip")
+stream.writable.getWriter
   .then((e) => blobToDir(e))
   .then((e) => console.log(e));
 
