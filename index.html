@@ -1,29 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <script src="tarball.js"></script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NPM file explorer</title>
   </head>
   <body>
-    <h1>tarballjs</h1>
-    <hr/>
-    <h2>Read .tar</h2>
-    <p>
-      File to extract:
-      <input type="file" id="tar-file-input"/>
-      <input type="button" value="Extract" onclick="load();"/>
-    </p>
-    <br/>
-    <p>Files:</p>
-      <ul id="file-list"></ul>
-    </p>
-    <hr/>
-    <h2>Generate .tar</h2>
-      <p>
-        Load File(s):
-        <input type="file" id="source-files-input" multiple/>
-        <input type="button" value="Generate" onclick="generate();"/>
-      </p>
-    <hr/>
-    <script src="./index.js"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
