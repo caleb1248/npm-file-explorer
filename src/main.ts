@@ -1,37 +1,24 @@
-import {TarReader} from "./tarball";
+import { TarReader } from "./tarball";
 
 async function fetchLatest(name: string) {
-  const { version } = await (
-    await fetch(`https://registry.npmjs.org/${name}/latest`)
-  ).json();
-  console.log(version);
+  const res = await fetch(`https://registry.npmjs.org/${name}/latest`);
+  const { version } = await res.json();
+  return version;
 }
 
-fetchLatest("esbuild-wasm");
-
-async function fetchSampleBlob() {
-  await (await (fetch("https://registry.npmjs.org/esbuild/-/esbuild-0.19.5.tgz"))).blob();
+async function fetchSampleBlob(packageName: string, version?: string) {
+  const pkgVersion = version || (await fetchLatest(packageName));
+  const stream = fetch(
+    `https://registry.npmjs.org/${packageName}/-/${packageName}-${pkgVersion}.tgz`
+  )
+    .then(({ blob }) => blob())
+    .then(({ stream }) => stream());
+  return (await stream).pipeThrough(new DecompressionStream("gzip"));
 }
-fetch("https://registry.npmjs.org/esbuild/-/esbuild-0.19.5.tgz");
 
 const blobToDir = (blob: Blob) => new TarReader().readFile(blob);
 
-const blob = fetchSampleBlob()
-const stream = new DecompressionStream("gzip")
-stream.writable.getWriter
-  .then((e) => blobToDir(e))
-  .then((e) => console.log(e));
+const stream = await fetchSampleBlob("esbuild-wasm");
+const blob = await new Response(stream).blob();
 
-/**
- * Output
- *
- * [
- *  {
- *    "name": "pax_global_header",
- *    "type": "g",
- *    "size": 52,
- *    "header_offset": 0
- *  },
- *  ...
- * ]
- */
+console.log(await blobToDir(blob));
