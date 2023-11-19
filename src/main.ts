@@ -1,4 +1,6 @@
+import { Buffer } from "buffer";
 import { TarReader } from "./tarball";
+import { isText } from "./textorbinary";
 
 interface FolderFile {
   name: string;
@@ -45,6 +47,9 @@ function fileListToTree(reader: TarReader) {
       //@ts-ignore
       file(fileName, reader.getFileBlob("package/" + name)!)
     );
+    console.log(
+      isText(fileName, Buffer.from(reader.getFileBinary("package/" + name)!))
+    );
   }
 
   return JSON.stringify(root.contents, null, 2);
@@ -73,5 +78,5 @@ const packageTar = await fetchSampleBlob("esbuild-wasm");
 
 const reader = new TarReader();
 reader.readArrayBuffer(packageTar);
-
-document.body.appendChild(document.createTextNode(fileListToTree(reader)));
+/*@ts-ignore*/
+document.querySelector("pre").innerHTML = fileListToTree(reader);

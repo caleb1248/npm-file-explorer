@@ -9,7 +9,14 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/path-browserify": "^1.0.2",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "binaryextensions": "^6.3.0",
+    "buffer": "^6.0.3",
+    "path-browserify": "^1.0.1",
+    "textextensions": "^6.2.0"
   }
 }
