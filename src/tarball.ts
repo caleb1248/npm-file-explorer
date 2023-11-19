@@ -1,8 +1,8 @@
-interface FileInfo{
-  name: string,
-  type: string,
-  size: number,
-  header_offset: number
+interface FileInfo {
+  name: string;
+  type: string;
+  size: number;
+  header_offset: number;
 }
 
 class TarReader {
@@ -90,7 +90,7 @@ class TarReader {
     }
   }
 
-  _readFileSize(header_offset:number) {
+  _readFileSize(header_offset: number) {
     // offset: 124
     let szView = new Uint8Array(this.buffer, header_offset + 124, 12);
     let szStr = "";
@@ -100,13 +100,13 @@ class TarReader {
     return parseInt(szStr, 8);
   }
 
-  _readFileBlob(file_offset:number, size:number, type: string) {
+  _readFileBlob(file_offset: number, size: number, type: string) {
     let view = new Uint8Array(this.buffer, file_offset, size);
     let blob = new Blob([view], { type });
     return blob;
   }
 
-  _readFileBinary(file_offset:number, size:number) {
+  _readFileBinary(file_offset: number, size: number) {
     let view = new Uint8Array(this.buffer, file_offset, size);
     return view;
   }
@@ -128,7 +128,7 @@ class TarReader {
     let info = this.fileInfo.find((info) => info.name == file_name);
     if (info) {
       return this._readFileBlob(info.header_offset + 512, info.size, mimetype);
-    }
+    } else throw "File not found";
   }
 
   getFileBinary(file_name: string) {
@@ -138,6 +138,5 @@ class TarReader {
     }
   }
 }
-
 
 export { TarReader };

@@ -8,17 +8,20 @@ async function fetchLatest(name: string) {
 
 async function fetchSampleBlob(packageName: string, version?: string) {
   const pkgVersion = version || (await fetchLatest(packageName));
-  const stream = fetch(
+  const res = await fetch(
     `https://registry.npmjs.org/${packageName}/-/${packageName}-${pkgVersion}.tgz`
-  )
-    .then(({ blob }) => blob())
-    .then(({ stream }) => stream());
-  return (await stream).pipeThrough(new DecompressionStream("gzip"));
+  );
+
+  if (res.status === 404 || !res.body) throw "Failed to fetch package";
+
+  return await new Response(
+    res.body.pipeThrough(new DecompressionStream("gzip"))
+  ).arrayBuffer();
 }
 
-const blobToDir = (blob: Blob) => new TarReader().readFile(blob);
+const packageTar = await fetchSampleBlob("esbuild-wasm");
 
-const stream = await fetchSampleBlob("esbuild-wasm");
-const blob = await new Response(stream).blob();
+const reader = new TarReader();
+const result = reader.readArrayBuffer(packageTar);
 
-console.log(await blobToDir(blob));
+console.log(result);
