@@ -28,7 +28,7 @@ function fileListToTree(reader: TarReader) {
   const root = folder("");
 
   for (const name of nameList) {
-    const pathSegments = name.split(""),
+    const pathSegments = name.split("/"),
       fileName = pathSegments.pop()!;
 
     let currentFolder = root;
@@ -46,6 +46,8 @@ function fileListToTree(reader: TarReader) {
       file(fileName, reader.getFileBlob("package/" + name)!)
     );
   }
+
+  return JSON.stringify(root.contents, null, 2);
 }
 
 async function fetchLatest(name: string) {
@@ -72,4 +74,4 @@ const packageTar = await fetchSampleBlob("esbuild-wasm");
 const reader = new TarReader();
 reader.readArrayBuffer(packageTar);
 
-console.log(fileListToTree(reader));
+document.body.appendChild(document.createTextNode(fileListToTree(reader)));
