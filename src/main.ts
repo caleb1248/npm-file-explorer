@@ -1,25 +1,23 @@
 import { TarReader } from "./tarball";
 
-interface FileLike {
+interface FolderFile {
   name: string;
-  type: string;
-}
-
-interface FolderFile extends FileLike {
-  content: string;
+  content: Blob;
   type: "File";
 }
 
-interface Folder extends FileLike {}
-function file(name: string, content: Blob) {
-  return { name, content };
+interface Folder {
+  name: string;
+  contents: (FolderFile | Folder)[];
+  type: "Folder";
 }
 
-function folder(name: string): {
-  name: string;
-  contents: (ReturnType<typeof file> | ReturnType<typeof folder>)[];
-} {
-  return { name, contents: [] };
+function file(name: string, content: Blob): FolderFile {
+  return { name, content, type: "File" };
+}
+
+function folder(name: string): Folder {
+  return { name, contents: [], type: "Folder" };
 }
 
 function fileListToTree(reader: TarReader) {
@@ -30,6 +28,23 @@ function fileListToTree(reader: TarReader) {
   const root = folder("");
 
   for (const name of nameList) {
+    const pathSegments = name.split(""),
+      fileName = pathSegments.pop()!;
+
+    let currentFolder = root;
+
+    for (const segment of pathSegments)
+      currentFolder = (currentFolder.contents.find(
+        ({ name }) => name === segment
+      ) ||
+        currentFolder.contents[
+          currentFolder.contents.push(folder(segment)) - 1
+        ]) as Folder;
+
+    currentFolder.contents.push(
+      //@ts-ignore
+      file(fileName, reader.getFileBlob("package/" + name)!)
+    );
   }
 }
 
@@ -55,6 +70,6 @@ async function fetchSampleBlob(packageName: string, version?: string) {
 const packageTar = await fetchSampleBlob("esbuild-wasm");
 
 const reader = new TarReader();
-const result = reader.readArrayBuffer(packageTar);
+reader.readArrayBuffer(packageTar);
 
-console.log(result);
+console.log(fileListToTree(reader));

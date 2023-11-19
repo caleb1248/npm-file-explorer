@@ -1,8 +1,8 @@
 interface FileInfo {
-  name: string;
-  type: string;
-  size: number;
-  header_offset: number;
+  name: string,
+  type: string,
+  size: number,
+  header_offset: number
 }
 
 class TarReader {
@@ -36,26 +36,26 @@ class TarReader {
   _readFileInfo() {
     this.fileInfo = [];
     let offset = 0;
-    let file_size = 0;
-    let file_name = "";
-    let file_type = null;
+    let size = 0;
+    let name = "";
+    let type = null;
     while (offset < this.buffer?.byteLength - 512) {
-      file_name = this._readFileName(offset); // file name
-      if (file_name.length == 0) {
+      name = this._readFileName(offset); // file name
+      if (name.length == 0) {
         break;
       }
-      file_type = this._readFileType(offset);
-      file_size = this._readFileSize(offset);
+      type = this._readFileType(offset);
+      size = this._readFileSize(offset);
 
       this.fileInfo.push({
-        name: file_name,
-        type: file_type,
-        size: file_size,
+        name,
+        type,
+        size,
         header_offset: offset,
       });
 
-      offset += 512 + 512 * Math.trunc(file_size / 512);
-      if (file_size % 512) {
+      offset += 512 + 512 * Math.trunc(size / 512);
+      if (size % 512) {
         offset += 512;
       }
     }
@@ -90,7 +90,7 @@ class TarReader {
     }
   }
 
-  _readFileSize(header_offset: number) {
+  _readFileSize(header_offset:number) {
     // offset: 124
     let szView = new Uint8Array(this.buffer, header_offset + 124, 12);
     let szStr = "";
@@ -100,13 +100,13 @@ class TarReader {
     return parseInt(szStr, 8);
   }
 
-  _readFileBlob(file_offset: number, size: number, type: string) {
+  _readFileBlob(file_offset:number, size:number, type: string) {
     let view = new Uint8Array(this.buffer, file_offset, size);
     let blob = new Blob([view], { type });
     return blob;
   }
 
-  _readFileBinary(file_offset: number, size: number) {
+  _readFileBinary(file_offset:number, size:number) {
     let view = new Uint8Array(this.buffer, file_offset, size);
     return view;
   }
@@ -128,7 +128,7 @@ class TarReader {
     let info = this.fileInfo.find((info) => info.name == file_name);
     if (info) {
       return this._readFileBlob(info.header_offset + 512, info.size, mimetype);
-    } else throw "File not found";
+    }
   }
 
   getFileBinary(file_name: string) {
@@ -138,5 +138,6 @@ class TarReader {
     }
   }
 }
+
 
 export { TarReader };
