@@ -4,7 +4,7 @@ import { isText } from "./textorbinary";
 
 interface FolderFile {
   name: string;
-  content: Blob;
+  fullPath: string;
   type: "File";
 }
 
@@ -14,8 +14,8 @@ interface Folder {
   type: "Folder";
 }
 
-function file(name: string, content: Blob): FolderFile {
-  return { name, content, type: "File" };
+function file(name: string, fullPath: string): FolderFile {
+  return { name, fullPath, type: "File" };
 }
 
 function folder(name: string): Folder {
@@ -38,6 +38,8 @@ function fileListToTree(reader: TarReader) {
     for (const segment of pathSegments)
       currentFolder = (currentFolder.contents.find(
         ({ name }) => name === segment
+
+        
       ) ||
         currentFolder.contents[
           currentFolder.contents.push(folder(segment)) - 1
@@ -45,7 +47,7 @@ function fileListToTree(reader: TarReader) {
 
     currentFolder.contents.push(
       //@ts-ignore
-      file(fileName, reader.getFileBlob("package/" + name)!)
+      file(fileName, name)
     );
     console.log(
       isText(fileName, Buffer.from(reader.getFileBinary("package/" + name)!))
