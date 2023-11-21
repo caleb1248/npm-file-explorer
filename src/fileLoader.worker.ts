@@ -4,6 +4,7 @@ declare var self: ServiceWorkerGlobalScope;
 
 import { Buffer } from "buffer";
 import { isText } from "./textorbinary";
+import { fetchPackage } from "./fetcher";
 
 interface FileInfo {
   name: string;
@@ -197,5 +198,5 @@ function fileListToTree(reader: TarReader) {
 }
 
 self.addEventListener("message", (e) => {
-  e.data; //todo
+  let { name, version } = e.data;
 });
