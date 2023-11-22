@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker"/>
 
-declare var self: ServiceWorkerGlobalScope;
+declare var self: DedicatedWorkerGlobalScope;
 
 import { Buffer } from "buffer";
 import { isText } from "./textorbinary";
@@ -199,4 +199,6 @@ function fileListToTree(reader: TarReader) {
 
 self.addEventListener("message", (e) => {
   let { name, version } = e.data;
+  console.log(name, version);
+  self.postMessage("hi");
 });
