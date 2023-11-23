@@ -3,7 +3,7 @@
 declare var self: DedicatedWorkerGlobalScope;
 
 import { Buffer } from "buffer";
-import { isText } from "./textorbinary";
+import { isBinary } from "./textorbinary";
 import { fetchPackage } from "./fetcher";
 
 interface FileInfo {
@@ -11,6 +11,18 @@ interface FileInfo {
   type: string;
   size: number;
   header_offset: number;
+}
+
+interface FolderFile {
+  name: string;
+  fullPath: string;
+  type: "File";
+}
+
+interface Folder {
+  name: string;
+  contents: (FolderFile | Folder)[];
+  type: "Folder";
 }
 
 class TarReader {
@@ -147,17 +159,7 @@ class TarReader {
   }
 }
 
-interface FolderFile {
-  name: string;
-  fullPath: string;
-  type: "File";
-}
-
-interface Folder {
-  name: string;
-  contents: (FolderFile | Folder)[];
-  type: "Folder";
-}
+const reader = new TarReader();
 
 function file(name: string, fullPath: string): FolderFile {
   return { name, fullPath, type: "File" };
@@ -167,10 +169,10 @@ function folder(name: string): Folder {
   return { name, contents: [], type: "Folder" };
 }
 
-function fileListToTree(reader: TarReader) {
-  const nameList = reader.fileInfo.map(({ name }) =>
-    name.replace("package/", "")
-  );
+function fileListToTree() {
+  const nameList = reader.fileInfo
+    .filter(({ type }) => type !== "directory")
+    .map(({ name }) => name.replace("package/", ""));
 
   const root = folder("");
 
@@ -189,16 +191,30 @@ function fileListToTree(reader: TarReader) {
         ]) as Folder;
 
     currentFolder.contents.push(file(fileName, name));
-    console.log(
-      isText(fileName, Buffer.from(reader.getFileBinary("package/" + name)!))
-    );
   }
 
-  return JSON.stringify(root.contents, null, 2);
+  return root.contents;
 }
 
-self.addEventListener("message", (e) => {
-  let { name, version } = e.data;
-  console.log(name, version);
-  self.postMessage("hi");
+self.addEventListener("message", async (e) => {
+  const { name, version } = e.data;
+  const tgz = await fetchPackage(name, version);
+  reader.readArrayBuffer(tgz);
+
+  const data = fileListToTree();
+
+  self.postMessage({ type: "tree", data });
+
+  for (const { name } of reader.fileInfo.filter((f) => f.type != "directory")) {
+    const content = reader.getFileBinary(name);
+
+    self.postMessage({
+      type: "file",
+      data: {
+        name,
+        content,
+        binary: isBinary(name, Buffer.from(content?.buffer!)),
+      },
+    });
+  }
 });
