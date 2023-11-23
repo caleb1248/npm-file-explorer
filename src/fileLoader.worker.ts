@@ -5,25 +5,7 @@ declare var self: DedicatedWorkerGlobalScope;
 import { Buffer } from "buffer";
 import { isBinary } from "./textorbinary";
 import { fetchPackage } from "./fetcher";
-
-interface FileInfo {
-  name: string;
-  type: string;
-  size: number;
-  header_offset: number;
-}
-
-interface FolderFile {
-  name: string;
-  fullPath: string;
-  type: "File";
-}
-
-interface Folder {
-  name: string;
-  contents: (FolderFile | Folder)[];
-  type: "Folder";
-}
+import type { Folder, FolderFile, FileInfo } from "./fileTypes";
 
 class TarReader {
   fileInfo: FileInfo[];

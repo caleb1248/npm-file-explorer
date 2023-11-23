@@ -1,7 +1,14 @@
 // @ts-ignore
 import fileLoader from "./fileLoader.worker?worker";
+import type { Folder, FolderFile } from "./fileTypes";
 
-export default function load(name: string, version?: string) {
+interface Options {
+  version?: number;
+}
+
+export default async function loadPackage(name: string, options?: Options) {
+  options = options || {};
+  const { version } = options;
   const worker: Worker = new fileLoader();
   worker.onmessage = ({ data: { type, data } }) => {
     switch (type) {
