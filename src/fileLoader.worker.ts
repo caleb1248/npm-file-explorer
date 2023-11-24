@@ -188,15 +188,21 @@ self.addEventListener("message", async (e) => {
   self.postMessage({ type: "tree", data });
 
   for (const { name } of reader.fileInfo.filter((f) => f.type != "directory")) {
-    const content = reader.getFileBinary(name);
+    try {
+      const content = reader.getFileBinary(name);
 
-    self.postMessage({
-      type: "file",
-      data: {
-        name,
-        content,
-        binary: isBinary(name, Buffer.from(content?.buffer!)),
-      },
-    });
+      if (!content) throw 'File "' + name + '" not found';
+
+      self.postMessage({
+        type: "file",
+        data: {
+          name,
+          content: content.buffer,
+          binary: isBinary(name, Buffer.from(content.buffer)),
+        },
+      });
+    } catch (e) {
+      self.postMessage({ type: "error", data: e });
+    }
   }
 });
